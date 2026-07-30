@@ -1,0 +1,44 @@
+# ============================================================
+#  Supabase pausa los proyectos del plan gratis después de
+#  7 días sin ninguna request. Si tu tío se va de vacaciones
+#  dos semanas, vuelve y la app no responde hasta que vos la
+#  reactivás a mano desde el panel.
+#
+#  Esto le manda un "hola" por día y el contador nunca llega.
+#  Corre en los servidores de GitHub, gratis.
+#
+#  Antes de que funcione, cargá los dos secretos en:
+#  tu repo → Settings → Secrets and variables → Actions → New secret
+#    SUPABASE_URL       (la misma de config.js)
+#    SUPABASE_ANON_KEY  (la misma de config.js)
+# ============================================================
+
+name: Mantener Supabase despierto
+
+on:
+  schedule:
+    - cron: '0 12 * * *'   # todos los días a las 12:00 UTC (9 de la mañana en Argentina)
+  workflow_dispatch:        # y también a mano desde la pestaña Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Despertar el proyecto
+        run: |
+          codigo=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/ping" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+
+          echo "Respuesta HTTP: $codigo"
+
+          # La función ping() no lee ni escribe datos: solo hace que el
+          # proyecto conteste, que es lo único que resetea el contador
+          # de inactividad de Supabase.
+          if [ "$codigo" != "200" ]; then
+            echo "El proyecto no respondió como se esperaba."
+            exit 1
+          fi

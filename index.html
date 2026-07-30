@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Dona de tareas</title>
+
+  <meta name="theme-color" content="#191142">
+  <meta name="description" content="Organizador de tareas y subtareas en forma de dona.">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./css/estilos.css">
+</head>
+<body>
+
+  <!-- ================= cargando ================= -->
+  <div id="cargando" class="cargando">
+    <div class="cargando-dona"></div>
+  </div>
+
+  <!-- ================= login ================= -->
+  <section id="pantalla-login" class="login" hidden>
+    <div class="login-caja">
+      <div class="login-marca">
+        <svg viewBox="0 0 100 100" class="login-logo" aria-hidden="true">
+          <circle cx="50" cy="50" r="34" fill="none" stroke="#2E2470" stroke-width="20"/>
+          <path d="M50 16 A34 34 0 0 1 79 66" fill="none" stroke="#FF2E63" stroke-width="20" stroke-linecap="round"/>
+        </svg>
+        <h1>Dona de tareas</h1>
+      </div>
+
+      <form id="form-login" novalidate>
+        <label for="email">Tu mail</label>
+        <input id="email" type="email" autocomplete="username" inputmode="email" required>
+
+        <label for="password">Tu contraseña</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+
+        <p id="login-error" class="login-error" role="alert" hidden></p>
+
+        <button id="btn-entrar" type="submit" class="btn btn-lleno btn-ancho">Entrar</button>
+      </form>
+
+      <p class="login-nota">Se pide una sola vez por dispositivo.</p>
+    </div>
+  </section>
+
+  <!-- ================= app ================= -->
+  <section id="pantalla-app" class="app" hidden>
+
+    <header class="barra">
+      <button id="btn-editar" class="btn btn-chico">Editar</button>
+      <span class="barra-titulo">Dona de tareas</span>
+      <button id="btn-salir" class="btn btn-chico btn-fantasma">Salir</button>
+    </header>
+
+    <p id="aviso" class="aviso" role="status" hidden></p>
+
+    <nav id="migas" class="migas" aria-label="Dónde estás" hidden></nav>
+
+    <div class="dona-caja">
+      <svg id="dona" viewBox="0 0 320 320" role="img"
+           aria-label="Dona con el avance de las tareas"></svg>
+    </div>
+
+    <div id="zona-hecha" class="zona-hecha"></div>
+
+    <div id="lista" class="lista"></div>
+
+    <div class="pie">
+      <button id="btn-agregar" class="btn btn-lleno btn-ancho">＋ Agregar tarea</button>
+    </div>
+
+  </section>
+
+  <!-- ================= scripts ================= -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="./js/config.js"></script>
+  <script src="./js/db.js"></script>
+  <script src="./js/arbol.js"></script>
+  <script src="./js/dona.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
