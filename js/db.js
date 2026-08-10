@@ -65,7 +65,7 @@ var DB = (function () {
   async function listar() {
     var r = await conectar()
       .from('tareas')
-      .select('id, padre_id, titulo, hecho, orden, creado_en')
+      .select('id, padre_id, titulo, estado, orden, creado_en')
       .order('orden', { ascending: true })
       .order('creado_en', { ascending: true });
 
@@ -75,7 +75,7 @@ var DB = (function () {
     return r.data;
   }
 
-  async function crear(titulo, padreId, orden) {
+  async function crear(titulo, padreId, orden, estado) {
     var sesion = await sesionActual();
     if (!sesion) throw new Error('Sin sesión');
 
@@ -85,6 +85,7 @@ var DB = (function () {
         titulo: titulo.trim(),
         padre_id: padreId || null,
         orden: orden || 0,
+        estado: estado || 'activa',
         user_id: sesion.user.id
       })
       .select()
@@ -94,11 +95,22 @@ var DB = (function () {
     return r.data;
   }
 
-  async function marcar(id, hecho) {
+  // 'cola' | 'activa' | 'hecha'
+  async function cambiarEstado(id, estado) {
     var r = await conectar()
       .from('tareas')
-      .update({ hecho: hecho })
+      .update({ estado: estado })
       .eq('id', id);
+    if (r.error) throw r.error;
+  }
+
+  // Varias de una: al archivar en cascada evita ir de a una request.
+  async function cambiarEstadoVarias(ids, estado) {
+    if (!ids.length) return;
+    var r = await conectar()
+      .from('tareas')
+      .update({ estado: estado })
+      .in('id', ids);
     if (r.error) throw r.error;
   }
 
@@ -110,7 +122,7 @@ var DB = (function () {
     if (r.error) throw r.error;
   }
 
-  // El "on delete cascade" del SQL se encarga de los hijos, nietos, etc.
+  // El "on delete cascade" del SQL se encarga de hijos, nietos, etc.
   async function borrar(id) {
     var r = await conectar().from('tareas').delete().eq('id', id);
     if (r.error) throw r.error;
@@ -118,7 +130,6 @@ var DB = (function () {
 
   /* ---------------------------------------------------------
      SINCRONIZACIÓN EN VIVO
-     Si marca algo en el celular, la tablet se entera sola.
      --------------------------------------------------------- */
 
   function escucharCambios(fn) {
@@ -157,7 +168,8 @@ var DB = (function () {
     alCambiarSesion: alCambiarSesion,
     listar: listar,
     crear: crear,
-    marcar: marcar,
+    cambiarEstado: cambiarEstado,
+    cambiarEstadoVarias: cambiarEstadoVarias,
     renombrar: renombrar,
     borrar: borrar,
     escucharCambios: escucharCambios,

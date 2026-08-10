@@ -4,13 +4,25 @@
    Supabase devuelve una lista plana de filas. Acá la convertimos
    en un árbol y calculamos cuánto está hecho de cada rama.
    Sin dependencias, sin frameworks: matemática y recursión.
+
+   LOS TRES ESTADOS
+   ----------------
+   'cola'   : anotada para más adelante. No se dibuja y NO cuenta
+              para el progreso. Es backlog, no trabajo comprometido.
+   'activa' : está en la dona.
+   'hecha'  : terminada. NO se dibuja, pero SÍ cuenta como 1.
+
+   Ese último punto es el que sostiene todo. Si una tarea terminada
+   dejara de contar, al completar el último hijo el padre se
+   quedaría sin hijos, volvería a ser una hoja sin tildar y su
+   progreso caería a cero. Sale de la vista, no de la cuenta.
    ============================================================ */
 
 var Arbol = (function () {
 
   /* Lista plana  ->  árbol.
-     Recorremos una sola vez armando un índice por id, y una segunda
-     vez colgando cada tarea de su padre. O(n), no O(n²). */
+     Un recorrido para indexar por id, otro para colgar cada tarea
+     de su padre. O(n), no O(n²). */
   function construir(filas) {
     var indice = {};
     var raices = [];
@@ -19,7 +31,7 @@ var Arbol = (function () {
       indice[f.id] = {
         id: f.id,
         titulo: f.titulo,
-        hecho: f.hecho,
+        estado: f.estado || 'activa',
         padre_id: f.padre_id,
         orden: f.orden,
         hijos: []
@@ -38,23 +50,43 @@ var Arbol = (function () {
     return { raices: raices, indice: indice };
   }
 
+  /* Los hijos que participan del progreso: todos menos los de la cola. */
+  function hijosQueCuentan(nodo) {
+    return nodo.hijos.filter(function (h) { return h.estado !== 'cola'; });
+  }
+
+  /* Los que se dibujan en la dona: solo los activos. */
+  function hijosActivos(nodo) {
+    return nodo.hijos.filter(function (h) { return h.estado === 'activa'; });
+  }
+
+  function hijosEnCola(nodo) {
+    return nodo.hijos.filter(function (h) { return h.estado === 'cola'; });
+  }
+
+  function hijosHechos(nodo) {
+    return nodo.hijos.filter(function (h) { return h.estado === 'hecha'; });
+  }
+
   /* EL corazón del asunto.
 
-     - Una tarea SIN hijos vale 1 si está tildada, 0 si no.
-     - Una tarea CON hijos vale el promedio de sus hijos.
+     - Sin hijos que cuenten  -> vale 1 si está hecha, 0 si no.
+     - Con hijos que cuenten  -> el promedio de esos hijos.
 
-     Consecuencia directa: una tarea con subtareas nunca se marca
-     a mano. Se completa sola, y solo cuando TODAS sus subtareas
-     (y las subtareas de sus subtareas) están completas.
-     Eso es la muñeca rusa, en cinco líneas. */
+     Consecuencia: una tarea con subtareas nunca se marca a mano.
+     Se completa sola, y solo cuando TODAS sus subtareas (y las
+     subtareas de sus subtareas) están completas. */
   function progreso(nodo) {
-    if (nodo.hijos.length === 0) {
-      return nodo.hecho ? 1 : 0;
+    var cuentan = hijosQueCuentan(nodo);
+
+    if (cuentan.length === 0) {
+      return nodo.estado === 'hecha' ? 1 : 0;
     }
-    var suma = nodo.hijos.reduce(function (acc, h) {
+
+    var suma = cuentan.reduce(function (acc, h) {
       return acc + progreso(h);
     }, 0);
-    return suma / nodo.hijos.length;
+    return suma / cuentan.length;
   }
 
   function completa(nodo) {
@@ -79,12 +111,46 @@ var Arbol = (function () {
     return ruta;
   }
 
+  /* Foto del progreso de todos los nodos, para comparar antes/después.
+     Sirve para detectar qué tareas CRUZARON el 100% con el último
+     cambio: esas son las que se archivan solas.
+
+     Comparar antes vs. después (en lugar de mirar solo el después) es
+     lo que permite reactivar una tarea terminada sin que se archive
+     de nuevo al instante: ya estaba en 100%, no cruzó nada. */
+  function foto(indice) {
+    var f = {};
+    Object.keys(indice).forEach(function (id) {
+      f[id] = progreso(indice[id]) >= 0.999;
+    });
+    return f;
+  }
+
+  /* Ids que pasaron de incompletos a completos entre las dos fotos,
+     siguen activos y no tienen nada pendiente en la cola. */
+  function cruzaronEl100(antes, despues, indice) {
+    return Object.keys(despues).filter(function (id) {
+      var n = indice[id];
+      return despues[id] &&
+             !antes[id] &&
+             n &&
+             n.estado === 'activa' &&
+             hijosEnCola(n).length === 0;
+    });
+  }
+
   return {
     construir: construir,
     progreso: progreso,
     completa: completa,
+    hijosActivos: hijosActivos,
+    hijosEnCola: hijosEnCola,
+    hijosHechos: hijosHechos,
+    hijosQueCuentan: hijosQueCuentan,
     contarDescendientes: contarDescendientes,
-    camino: camino
+    camino: camino,
+    foto: foto,
+    cruzaronEl100: cruzaronEl100
   };
 
 })();

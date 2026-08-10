@@ -16,13 +16,26 @@ create table if not exists public.tareas (
              references auth.users(id) on delete cascade,
   padre_id   uuid references public.tareas(id) on delete cascade,
   titulo     text not null check (char_length(trim(titulo)) between 1 and 200),
-  hecho      boolean not null default false,
   orden      integer not null default 0,
-  creado_en  timestamptz not null default now()
+  creado_en  timestamptz not null default now(),
+
+  -- Dónde vive la tarea. Son tres lugares, no un sí/no:
+  --   'cola'   → anotada para más adelante. No está en la dona
+  --              y NO cuenta para el progreso (no es trabajo
+  --              comprometido todavía, es un backlog).
+  --   'activa' → está en la dona.
+  --   'hecha'  → terminada. Sale de la dona y se va a la lista de
+  --              hechas, PERO sigue contando como 1 en el progreso
+  --              del padre. Si no contara, al terminar el último
+  --              hijo el padre se quedaría sin hijos y volvería a
+  --              cero: la muñeca rusa se rompe.
+  estado     text not null default 'activa'
+             check (estado in ('cola', 'activa', 'hecha'))
 );
 
-create index if not exists tareas_user_idx  on public.tareas(user_id);
-create index if not exists tareas_padre_idx on public.tareas(padre_id);
+create index if not exists tareas_user_idx   on public.tareas(user_id);
+create index if not exists tareas_padre_idx  on public.tareas(padre_id);
+create index if not exists tareas_estado_idx on public.tareas(estado);
 
 
 -- ------------------------------------------------------------

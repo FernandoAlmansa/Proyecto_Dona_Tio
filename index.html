@@ -54,7 +54,8 @@
   <section id="pantalla-app" class="app" hidden>
 
     <header class="barra">
-      <button id="btn-editar" class="btn btn-chico">Editar</button>
+      <button id="btn-volver" class="btn btn-chico btn-fantasma" hidden
+              aria-label="Volver un nivel">← Volver</button>
       <span class="barra-titulo">Dona de tareas</span>
       <button id="btn-salir" class="btn btn-chico btn-fantasma">Salir</button>
     </header>
@@ -63,20 +64,36 @@
 
     <nav id="migas" class="migas" aria-label="Dónde estás" hidden></nav>
 
+    <h1 id="titulo-nivel" class="titulo-nivel">Mis tareas</h1>
+
     <div class="dona-caja">
       <svg id="dona" viewBox="0 0 320 320" role="img"
            aria-label="Dona con el avance de las tareas"></svg>
     </div>
-
-    <div id="zona-hecha" class="zona-hecha"></div>
-
-    <div id="lista" class="lista"></div>
 
     <div class="pie">
       <button id="btn-agregar" class="btn btn-lleno btn-ancho">＋ Agregar tarea</button>
     </div>
 
   </section>
+
+  <!-- ================= panel de listas ================= -->
+  <div id="panel-fondo" class="panel-fondo" hidden></div>
+
+  <aside id="panel" class="panel" role="dialog" aria-label="Listas de tareas" hidden>
+    <div class="panel-agarre"></div>
+
+    <div class="panel-cabecera">
+      <h2 id="panel-titulo">Mis tareas</h2>
+      <div class="panel-cabecera-botones">
+        <button id="btn-editar" class="btn btn-chico btn-fantasma">Editar</button>
+        <button id="panel-cerrar" class="icono" aria-label="Cerrar">✕</button>
+      </div>
+    </div>
+
+    <div id="panel-tabs" class="panel-tabs" role="tablist"></div>
+    <div id="panel-lista" class="panel-lista"></div>
+  </aside>
 
   <!-- ================= scripts ================= -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>

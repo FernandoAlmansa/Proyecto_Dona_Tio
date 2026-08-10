@@ -12,7 +12,7 @@
    VERSION. Eso obliga a los teléfonos a bajar la versión nueva.
    ============================================================ */
 
-var VERSION = 'dona-v2';
+var VERSION = 'dona-v3';
 
 var ARCHIVOS = [
   './',

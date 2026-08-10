@@ -7,7 +7,45 @@ todos los dispositivos.
 **Una tarea con subtareas no se marca a mano.** Se completa sola cuando todas
 sus subtareas están completas, y las de ellas también. Eso es la muñeca rusa.
 
+## Los tres estados
+
+Cada tarea vive en uno de tres lugares:
+
+| Estado | ¿Se dibuja en la dona? | ¿Cuenta para el progreso? |
+|---|---|---|
+| **En cola** — anotada para más adelante | no | **no** |
+| **En la dona** — el trabajo de ahora | sí | sí |
+| **Hecha** — terminada | no | **sí, como 1** |
+
+Las dos casillas raras son las que hacen que todo funcione:
+
+- **La cola no cuenta** porque no es trabajo comprometido todavía. Si contara,
+  anotar cinco ideas para el mes que viene te bajaría el progreso de hoy.
+- **Las hechas sí cuentan** aunque no se dibujen. Si dejaran de contar, al
+  terminar la última subtarea el padre se quedaría sin hijos, volvería a ser
+  una hoja sin tildar y su progreso caería a cero. **Salen de la vista, no de
+  la cuenta.**
+
+Cuando una tarea llega al 100% se archiva sola y desaparece de la dona. Si la
+reactivás desde la pestaña *Hechas*, vuelve y **no** se re-archiva: el código
+compara el progreso de antes y el de después, y solo archiva lo que *cruzó* el
+100% con ese cambio. Una tarea que ya estaba en 100% no cruzó nada.
+
+Una excepción: un padre que llega al 100% pero todavía tiene subtareas **en
+cola** no se archiva. Sigue en la dona avisándote que ahí queda algo planeado.
+
 ---
+
+## Cómo se usa
+
+- La pantalla principal es **solo la dona**. Cada porción es una tarea.
+- Tocás una porción y entrás adentro: ahora la dona muestra sus subtareas.
+- El **centro es un botón**: abre la lista del nivel donde estás, con tres
+  pestañas (En la dona / En cola / Hechas).
+- **← Volver** arriba a la izquierda, o las migas de pan, para subir un nivel.
+- Al agregar, elegís si va **a la dona** o **a la cola**.
+- El puntito abajo del "ver lista" avisa que hay algo guardado en la cola o en
+  las hechas de ese nivel.
 
 ## Archivos
 
@@ -22,7 +60,8 @@ js/app.js                      pantallas, navegación, diálogos
 manifest.json                  para que Android la instale como app
 sw.js                          service worker (funciona sin internet)
 icons/                         íconos de la app
-supabase/schema.sql            ← ESTO VA A SUPABASE
+supabase/schema.sql            ← ESTO VA A SUPABASE (proyecto nuevo)
+supabase/migracion-v2.sql      ← si ya tenías la tabla de antes
 .github/workflows/mantener-viva.yml   ping diario anti-pausa
 ```
 
@@ -50,6 +89,12 @@ supabase/schema.sql            ← ESTO VA A SUPABASE
 2. Cuando termine de crearse, andá a **SQL Editor** → **New query**, pegá
    **todo** el contenido de `supabase/schema.sql` y dale **Run**.
    Tiene que decir *Success*.
+
+   **¿Ya tenías la tabla creada con la versión anterior?** No corras
+   `schema.sql` de nuevo: usá `supabase/migracion-v2.sql`, que agrega la
+   columna `estado`, pasa lo que había (lo tildado → `hecha`, el resto →
+   `activa`) y saca la columna `hecho`. Se puede correr dos veces sin romper
+   nada.
 
 3. **Creá el usuario de tu tío a mano:**
    **Authentication** → **Users** → **Add user** → *Create new user*.
